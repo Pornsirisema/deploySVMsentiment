@@ -9,50 +9,56 @@ with open('model_SVM_deploy_sentiment.pkl', 'rb') as file:
 # Streamlit interface for input
 st.title("Sentiment Analysis using SVM")
 
-# Option to input text manually
-st.subheader("Input a single comment for sentiment prediction")
-user_input = st.text_input("Enter your comment:", "")
+# User can either input text or upload an Excel file
+option = st.radio("Choose input method:", ('Text Input', 'Upload Excel File'))
 
-# Option to upload a CSV file
-st.subheader("Or upload a CSV file for bulk prediction")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-
-# Function to predict sentiment
-def predict_sentiment(texts):
-    x_new = pd.DataFrame({'ข้อความ': texts})
-    X_vectorized = vectorizer.transform(x_new['ข้อความ'])
-    predictions = svm_model.predict(X_vectorized)
-    x_new['Predicted Sentiment'] = predictions
-    return x_new
-
-# If user provides text input
-if user_input:
-    result = predict_sentiment([user_input])
-    st.write("Prediction for the input comment:")
-    st.write(result[['ข้อความ', 'Predicted Sentiment']])
-
-# If user uploads a CSV file
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+if option == 'Text Input':
+    # Text input
+    user_input = st.text_input("Enter your comment:", "ได้รับของไวมาก สินค้าตรงปกค่ะ")
     
-    if 'ข้อความ' in df.columns:
-        st.write("Uploaded file preview:")
-        st.write(df.head())
+    if user_input:
+        # Prepare the input data
+        x_new = pd.DataFrame({'ข้อความ': [user_input]})
+        X_vectorized = vectorizer.transform(x_new['ข้อความ'])
         
-        # Perform sentiment prediction
-        result_df = predict_sentiment(df['ข้อความ'].tolist())
+        # Predict sentiment
+        y_pred = svm_model.predict(X_vectorized)
         
-        # Display result
-        st.write("Prediction results:")
-        st.write(result_df)
+        # Display the result
+        st.write(f"Predicted sentiment: {y_pred[0]}")
 
-        # Button to download the result as CSV
-        csv = result_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download prediction results as CSV",
-            data=csv,
-            file_name='sentiment_predictions.csv',
-            mime='text/csv'
-        )
-    else:
-        st.write("The uploaded file must contain a 'ข้อความ' column.")
+elif option == 'Upload Excel File':
+    # File upload
+    uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
+    
+    if uploaded_file:
+        # Read the Excel file
+        df = pd.read_excel(uploaded_file)
+        
+        if 'ข้อความ' in df.columns:
+            # Vectorize the text data
+            X_vectorized = vectorizer.transform(df['ข้อความ'])
+            
+            # Predict sentiment
+            df['Predicted Sentiment'] = svm_model.predict(X_vectorized)
+            
+            # Show the predictions
+            st.write(df)
+            
+            # Allow user to download the prediction results
+            @st.cache_data
+            def convert_df(df):
+                return df.to_excel(index=False)
+            
+            # Convert dataframe to Excel format for download
+            result = convert_df(df)
+            
+            # Download button
+            st.download_button(
+                label="Download predictions as Excel",
+                data=result,
+                file_name="sentiment_predictions.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        else:
+            st.error("The uploaded file must contain a 'ข้อความ' column.")
