@@ -1,6 +1,7 @@
 import streamlit as st
 import pickle
 import pandas as pd
+import io
 
 # Load the SVM model and vectorizer
 with open('model_SVM_deploy_sentiment.pkl', 'rb') as file:
