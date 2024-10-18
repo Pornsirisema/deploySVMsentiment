@@ -33,7 +33,13 @@ if user_input:
 
 # If user uploads a CSV file
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    try:
+        # Try reading with default encoding (UTF-8)
+        df = pd.read_csv(uploaded_file, encoding='utf-8')
+    except UnicodeDecodeError:
+        # If a UnicodeDecodeError occurs, try another encoding
+        st.write("Error reading file with UTF-8 encoding. Trying ISO-8859-1 encoding.")
+        df = pd.read_csv(uploaded_file, encoding='ISO-8859-1')
     
     if 'ข้อความ' in df.columns:
         st.write("Uploaded file preview:")
