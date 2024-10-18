@@ -1,3 +1,5 @@
 openpyxl
 scikit-learn
 pandas
+xlsxwriter
+
