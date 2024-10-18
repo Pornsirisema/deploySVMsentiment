@@ -30,6 +30,7 @@ if option == 'Text Input':
 elif option == 'Upload Excel File':
     # File upload
     uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
+    print(uploaded_file)
     
     if uploaded_file:
         # Read the Excel file
