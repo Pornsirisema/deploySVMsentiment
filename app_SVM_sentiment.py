@@ -48,11 +48,24 @@ elif option == 'Upload Excel File':
             
             # Allow user to download the prediction results
             @st.cache_data
-            def convert_df(df):
-                return df.to_excel(index=False)
+            # def convert_df(df):
+            #     return df.to_excel(index=False)
+            
+            # # Convert dataframe to Excel format for download
+            # result = convert_df(df)
+
+            def convert_df_to_excel(df):
+                # Create a buffer to hold the excel data
+                output = io.BytesIO()
+                # Write the DataFrame to the buffer
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False)
+                # Get the Excel file data
+                output.seek(0)
+                return output
             
             # Convert dataframe to Excel format for download
-            result = convert_df(df)
+            result = convert_df_to_excel(df)
             
             # Download button
             st.download_button(
